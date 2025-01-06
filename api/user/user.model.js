@@ -10,6 +10,20 @@ const Schema = mongoose.Schema;
 const authTypes = ['github', 'twitter', 'facebook', 'google'];
 mongoose.Promise = require('bluebird');
 
+// naive enum for js...
+const UserRole = Object.freeze({
+  ADMIN: 'admin',
+  USER: 'user',
+  GUEST: 'guest',
+});
+
+// another type of enum for js...
+class UserStatus {
+  static ACTIVE = 'active';
+  static INACTIVE = 'inactive';
+  static LOCKED = 'locked';
+}
+
 const AdditionalDataSchema = new Schema({
   address: { type: String, uppercase: true },
   phoneNumber: { type: String },
@@ -18,6 +32,8 @@ const AdditionalDataSchema = new Schema({
   language: { type: String, default: 'ES', uppercase: true },
   timeZone: { type: String, default: 'America/Bogota' },
   picture: { type: String, lowercase: true },
+  role: { type: UserRole, default: UserRole.GUEST },
+  status: { type: UserStatus, default: UserStatus.ACTIVE },
 }, { _id: false });
 
 const UserSchema = new Schema({
@@ -56,7 +72,9 @@ const UserSchema = new Schema({
 }, { timestamps: true });
 
 
-UserSchema.path('role').validate(value => /admin|label|user/i.test(value), 'role, assigned role is invalid');
+UserSchema.path('role').validate(value => /admin|user|guest/i.test(value), 'role, assigned role is invalid');
+
+UserSchema.path('status').validate(value => /active|inactive|locked/i.test(value), 'status, assigned status is invalid');
 
 /**
  * Virtuals
